@@ -30,6 +30,7 @@ int dfs(int u, int x) {
 	} return merge(merge(dfs(L, x), now), dfs(R, x));
 }
 int main() {
+	cin.tie(0)->sync_with_stdio(0);
 	cin >> n >> m;
 	for (int i = 1; i <= n; i++) {
 		cin >> a[i]; tnumUpdate(i, a[i]);
@@ -41,18 +42,20 @@ int main() {
 			rt[y] = merge(rt[y], node(i));
 		} rt[a[i]] = merge(rt[a[i]], node(i));
 	}
+	intl last = 0;
 	for (int i = 1; i <= m; i++) {
 		int op, l, r;
 		cin >> op >> l >> r;
+		l ^= last, r ^= last;
 		if (op == 1) {
-			intl x; cin >> x;
+			intl x; cin >> x; x ^= last;
 			if (x == 1) continue;
 			int L, now, R;
 			split(rt[x], r, L, R), split(L, l - 1, L, now);
 			now = dfs(now, x);
 			rt[x] = merge(merge(L, now), R);
 		} else if (op == 2) {
-			cout << tnumQuery(r) - tnumQuery(l - 1) << "\n";
+			cout << (last = tnumQuery(r) - tnumQuery(l - 1)) << "\n";
 		}
 	}
 	return 0;
