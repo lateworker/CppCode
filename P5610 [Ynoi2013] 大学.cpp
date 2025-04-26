@@ -63,6 +63,7 @@ int main() {
 			cout << "-----\n";
 			for (int i = 2; i <= 5; i++) print(i), cout << "\n";
 			cout << "-----\n";
+			
 		}
 	}
 	return 0;
