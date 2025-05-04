@@ -21,8 +21,8 @@ int calcCenter(int u, int p, const int& n) {
 	return u;
 }
 void dfs(int u, int p, int d, vector<int>& res) {
-	res.push_back(d);
 	if (del[u]) return;
+	res.push_back(d);
 	for (auto [v, w] : g[u]) if (v != p)
 		dfs(v, u, d + w, res);
 }
@@ -33,13 +33,6 @@ void solve(int u) {
 	set<int> bst; bst.insert(0);
 	for (auto [v, w] : g[c]) {
 		vector<int> res;
-		auto dfs = [&](int u, int p, int dd, auto dfs) -> void {
-			res.push_back(dd);
-			for (int i = 1; i <= m; i++)
-				if (bst.count(d[i] - dd)) ans[i] = true;
-			for (auto [v, w] : g[u])
-				if (v != p) 
-		}
 		dfs(v, c, w, res);
 		for (int i = 1; i <= m; i++)
 			for (int x : res)
