@@ -1,4 +1,5 @@
 #include <bits/stdc++.h>
+#define mid(l, r) mid = ((l + r) >> 1)
 using namespace std;
 const int N = 100000, L = __lg(N + 1) + 1;
 int n, m, a[N + 10];
@@ -37,19 +38,52 @@ void build(int u, int p) {
 	vfa[c] = p, del[c] = true;
 	for (int v : g[c]) build(v, c);
 }
-struct Tnum {
-	vector<int> dat;
-	void modify(int pos, int val);
-	int query(int pos);
-};
-void Tnum::modify(int pos, int val) {
-	if (pos + 1 > (int) dat.size()) dat.resize(pos + 1);
-	for (int u = pos; u < (int) dat.size(); u++) dat[u] += val;
+struct SEGT {
+	struct Segt {
+		Segt *le, *ri; int val;
+		Segt() { le = ri = this, val = 0; }
+	} *root;
+	static Segt pool[N * 10 + 10];
+	static int psz;
+	SEGT() { root = pool, psz = 0; }
+	Segt* node();
+	void pushup(Segt* u);
+	void update(Segt*& u, int l, int r, int pos, int val);
+	int query(Segt* u, int l, int r, int lf, int rt);
+} st[2][N + 10];
+SEGT::Segt SEGT::pool[N * 10 + 10];
+int SEGT::psz = 0;
+SEGT::Segt* SEGT::node() { return pool + ++ psz; }
+void SEGT::pushup(Segt* u) { u->val = u->le->val + u->ri->val; }
+void SEGT::update(Segt*& u, int l, int r, int pos, int val) {
+	if (u == pool) u = node();
+	if (l == r) return void(u->val += val);
+	int mid(l, r);
+	pos <= mid ? update(u->le, l, mid, pos, val) : update(u->ri, mid + 1, r, pos, val);
+	pushup(u);
+}
+int SEGT::query(Segt* u, int l, int r, int lf, int rt) {
+	if (u == pool) return 0;
+	if (lf <= l && r <= rt) return u->val;
+	int mid(l, r);
+	if (rt <= mid) return query(u->le, l, mid, lf, rt);
+	if (mid < lf) return query(u->ri, mid + 1, r, lf, rt);
+	return query(u->le, l, mid, lf, rt) + query(u->ri, mid + 1, r, lf, rt);
 }
 void update(int pos, int val) {
-	for (int u = pos; u; u = vfa[u]) {
-		
+	for (int u = pos, f = vfa[u]; u; u = f, f = vfa[u]) {
+		st[0][u].update(st[0][u].root, 0, n, gdis(u, pos), val);
+		if (f) st[1][u].update(st[0][u].root, 0, n, gdis(f, pos), val);
 	}
+}
+int query(int pos, int k) {
+	int res = 0;
+	for (int u = pos, v = 0; u; v = u, u = vfa[u]) {
+		int dis = gdis(u, pos);
+		if (dis > k) continue;
+		res += st[0][u].query(st[0][u].root, 0, n, 0, k - dis);
+		if (v) res -= st[1][v].query(st[0][v].root, 0, n, 0, k - dis);
+	} return res;
 }
 int main() {
 	cin >> n >> m;
@@ -65,7 +99,16 @@ int main() {
 		for (int i = 1; i <= n - (1 << j) + 1; i++)
 			ST[i][j] = minST(ST[i][j - 1], ST[i + (1 << (j - 1))][j - 1]);
 	build(1, 0);
-	
-	for (int i = 1; i <= n; i++) cout << vfa[i] << " \n"[i == n];
+	for (int i = 1; i <= n; i++) update(i, a[i]);
+	for (int i = 1; i <= m; i++) {
+		int op, x, y;
+		cin >> op >> x >> y;
+		if (op == 0) {
+			cout << query(x, y) << "\n";
+		} else
+		if (op == 1) {
+			update(x, a[x] - y), a[x] = y;
+		}
+	}
 	return 0;
 }
