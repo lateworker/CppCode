@@ -42,7 +42,7 @@ struct SEGT {
 	}
 	
 	static Segt pool[N]; static size_t psz;
-	Segt* node() { return pool + ++ psz; }
+	Segt* node() { Segt* u = pool + ++ psz; u->le = u->ri = pool; return u; }
 	void update(int lf, int rt, int val) { update(root, L, R, lf, rt, val); }
 	int query(int lf, int rt) { return query(root, L, R, lf, rt); }
 };
