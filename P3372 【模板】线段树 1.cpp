@@ -1,11 +1,12 @@
 #include <bits/stdc++.h>
 #define mid(l, r) mid = (((l) + (r)) >> 1)
 using namespace std;
-template<size_t N>
+template<class val_t, class tag_t, size_t N>
 struct SEGT {
 	struct Segt {
 		Segt *le, *ri;
-		int val, tag;
+		val_t val;
+		int tag;
 		Segt() { le = ri = this, val = tag = 0; }
 	} *root; int L, R;
 	
@@ -42,20 +43,20 @@ struct SEGT {
 	}
 	
 	static Segt pool[N]; static size_t psz;
-	Segt* node() { return pool + ++ psz; }
+	Segt* node() { Segt* u = pool + ++ psz; u->le = u->ri = pool; return u; }
 	void update(int lf, int rt, int val) { update(root, L, R, lf, rt, val); }
 	int query(int lf, int rt) { return query(root, L, R, lf, rt); }
 };
-template<size_t N>
-SEGT<N>::Segt SEGT<N>::pool[N];
-template<size_t N>
-size_t SEGT<N>::psz = 0;
+template<class val_t, class tag_t, size_t N>
+SEGT<val_t, tag_t, N>::Segt SEGT<val_t, tag_t, N>::pool[N];
+template<class val_t, class tag_t, size_t N>
+size_t SEGT<val_t, tag_t, N>::psz = 0;
 
 const int N = 100000;
 int n, m;
 int main() {
 	cin >> n >> m;
-	SEGT<N * 4 + 10> st(1, n);
+	SEGT<int, int, N * 4 + 10> st(1, n);
 	for (int i = 1; i <= n; i++) {
 		int x; cin >> x;
 		st.update(i, i, x);
