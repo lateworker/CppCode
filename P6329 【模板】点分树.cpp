@@ -3,13 +3,12 @@
 using namespace std;
 
 template<size_t N>
-struct SEGT {
+class SEGT {
 	struct Segt {
 		Segt *le, *ri; int val;
 		Segt() { le = ri = this, val = 0; }
 	} *root;
 	
-	SEGT() { root = pool, psz = 0; }
 	
 	void pushup(Segt* u) { u->val = u->le->val + u->ri->val; }
 	void update(Segt*& u, int l, int r, int pos, int val) {
@@ -28,8 +27,12 @@ struct SEGT {
 		return query(u->le, l, mid, lf, rt) + query(u->ri, mid + 1, r, lf, rt);
 	}
 	
+public:
+	SEGT() { root = pool, psz = 0; }
 	static Segt pool[N]; static int psz;
-	Segt* node() { SEGT::Segt* u = pool + ++ psz; u->le = u->ri = pool; return u; }
+	static Segt* node() { Segt* u = pool + ++ psz; u->le = u->ri = pool; return u; }
+	void update(int l, int r, int pos, int val) { update(root, l, r, pos, val); }
+	int query(int l, int r, int lf, int rt) { return query(root, l, r, lf, rt); }
 };
 template<size_t N> SEGT<N>::Segt SEGT<N>::pool[N];
 template<size_t N> int SEGT<N>::psz = 0;
@@ -40,7 +43,6 @@ vector<int> g[N + 10];
 
 int dep[N + 10], dfn[N + 10], ST[N + 10][L + 1], psz;
 void gST(int u, int p) {
-//	cout << u << " " << p << '\n';
 	dep[u] = dep[p] + 1, dfn[u] = ++psz, ST[dfn[u]][0] = p;
 	for (int v : g[u]) if (v != p) gST(v, u);
 }
@@ -75,11 +77,11 @@ void build(int u, int p) {
 	for (int v : g[c]) build(v, c);
 }
 
-SEGT<10000> st[2][N + 10];
+SEGT<10000000> st[2][N + 10];
 void update(int pos, int val) {
 	for (int u = pos, f = vfa[u]; u; u = f, f = vfa[u]) {
-		st[0][u].update(st[0][u].root, 0, n, gdis(u, pos), val);
-		if (f) st[1][u].update(st[0][u].root, 0, n, gdis(f, pos), val);
+		st[0][u].update(0, n, gdis(u, pos), val);
+		if (f) st[1][u].update(0, n, gdis(f, pos), val);
 	}
 }
 int query(int pos, int k) {
@@ -87,14 +89,12 @@ int query(int pos, int k) {
 	for (int u = pos, v = 0; u; v = u, u = vfa[u]) {
 		int dis = gdis(u, pos);
 		if (dis > k) continue;
-		res += st[0][u].query(st[0][u].root, 0, n, 0, k - dis);
-		if (v) res -= st[1][v].query(st[0][v].root, 0, n, 0, k - dis);
+		res += st[0][u].query(0, n, 0, k - dis);
+		if (v) res -= st[1][v].query(0, n, 0, k - dis);
 	} return res;
 }
 
-int main() { // cin.tie(0)->sync_with_stdio(0);
-	freopen("P6329.in", "r", stdin);
-//	freopen("P6329.out", "w", stdout);
+int main() { cin.tie(0)->sync_with_stdio(0);
 	cin >> n >> m;
 	for (int i = 1; i <= n; i++) cin >> a[i];
 	for (int i = 1; i < n; i++) {
@@ -103,25 +103,24 @@ int main() { // cin.tie(0)->sync_with_stdio(0);
 		g[u].emplace_back(v);
 		g[v].emplace_back(u);
 	}
-	cout << "FUCK1\n";
 	gST(1, 0);
-	cout << "FUCK2\n";
-//	for (int j = 1; j <= __lg(n); j++) {
-//		cout << j << "\n";
-//		for (int i = 1; i <= n - (1 << j) + 1; i++)
-//			ST[i][j] = minST(ST[i][j - 1], ST[i + (1 << (j - 1))][j - 1]);
-//	}
-//	build(1, 0);
-//	for (int i = 1; i <= n; i++) update(i, a[i]);
-//	for (int i = 1; i <= m; i++) {
-//		int op, x, y;
-//		cin >> op >> x >> y;
-//		if (op == 0) {
-//			cout << query(x, y) << "\n";
-//		} else
-//		if (op == 1) {
-//			update(x, a[x] - y), a[x] = y;
-//		}
-//	}
+	for (int j = 1; j <= __lg(n); j++) {
+		for (int i = 1; i <= n - (1 << j) + 1; i++)
+			ST[i][j] = minST(ST[i][j - 1], ST[i + (1 << (j - 1))][j - 1]);
+	}
+	build(1, 0);
+	for (int i = 1; i <= n; i++) update(i, a[i]);
+	int last = 0;
+	for (int i = 1; i <= m; i++) {
+		int op, x, y;
+		cin >> op >> x >> y;
+		x ^= last, y ^= last;
+		if (op == 0) {
+			cout << (last = query(x, y)) << "\n";
+		} else
+		if (op == 1) {
+			update(x, y - a[x]), a[x] = y;
+		}
+	}
 	return 0;
 }
