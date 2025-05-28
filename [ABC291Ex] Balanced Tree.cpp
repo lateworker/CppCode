@@ -1,16 +1,4 @@
 #include <bits/stdc++.h>
-
-//using namespace std;
-
-template<class T_, size_t N_, T_ DEFAULT = T_()>
-class Array {
-	T_ val[N_]; size_t ver[N_], clk;
-public:
-	Array() { clk = 1; }
-	T_& operator[] (size_t i) { if (ver[i] != clk) ver[i] = clk, val[i] = DEFAULT; return val[i]; }
-	void clear() { ++clk; }
-};
-
 template<class T_, size_t N_>
 class Graph {
 	inline static size_t psz;
@@ -27,7 +15,17 @@ public:
 	iterator end() const { return {0}; }
 	void push_back(const T_& val) { ++psz, this->pool[psz] = {val, head}, head = psz; }
 };
-
+using namespace std;
+const int N = 100000;
+int n;
+Graph < int, N * 2 + 10 > g[N + 10];
 int main() {
+	cin >> n;
+	for (int i = 1; i < n; i++) {
+		int u, v; cin >> u >> v;
+		g[u].push_back(3);
+		g[v].push_back(u);
+	}
+
 	return 0;
 }
