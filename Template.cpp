@@ -26,6 +26,7 @@ public:
 	iterator begin() const { return {head}; }
 	iterator end() const { return {0}; }
 	void push_back(const T_& val) { ++psz, this->pool[psz] = {val, head}, head = psz; }
+	void clear() { psz = head = 0; }
 };
 
 int main() {
