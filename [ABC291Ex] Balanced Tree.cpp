@@ -17,15 +17,31 @@ public:
 };
 using namespace std;
 const int N = 100000;
-int n;
+int n, siz[N + 10], vfa[N + 10];
 Graph < int, N * 2 + 10 > g[N + 10];
+bitset<N + 10> del;
+void gsiz(int u, int p) {
+	if (siz[u] = 0, del[u]) return;
+	siz[u] = 1; for (int v : g[u]) if (v != p) gsiz(v, u), siz[u] += siz[v];
+}
+int gcet(int u, int p, const int& r) {
+	if (del[u]) return 0;
+	for (int v : g[u]) if (v != p && siz[v] << 1 > r) return gcet(v, u, r);
+	return u;
+}
+void solve(int u, int p) {
+	if (del[u]) return;
+	gsiz(u, 0); int cet = gcet(u, 0, siz[u]);
+	vfa[cet] = p, del[cet] = true;
+	for (int v : g[cet]) solve(v, cet);
+}
 int main() {
 	cin >> n;
 	for (int i = 1; i < n; i++) {
 		int u, v; cin >> u >> v;
 		g[u].push_back(v);
 		g[v].push_back(u);
-	}
-
+	} solve(1, -1);
+	for (int i = 1; i <= n; i++) cout << vfa[i] << " \n"[i == n];
 	return 0;
 }
