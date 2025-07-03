@@ -1,6 +1,6 @@
-bina = int(input(), 2)
-deca = int(input())
-print(bina == deca)
-if bina != deca:
-    print(bina)
-    print(bin(deca))
+a = input().split()
+ans = 0
+for x in a:
+    ans <<= 32
+    ans += int(x)
+print(ans)

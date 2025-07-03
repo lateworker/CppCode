@@ -1,207 +1,171 @@
 #include <bits/stdc++.h>
 
-namespace std_intl {
+namespace std {
 
-#define hyperdigit(x) ((x) >= 1e4 ? ((x) >= 1e6 ? ((x) >= 1e7 ? 1e8 : 1e7) : ((x) >= 1e5 ? 1e6 : 1e5) ) : ((x) >= 1e2 ? ((x) >= 1e3 ? 1e4 : 1e3) : ((x) >= 1e1 ? 1e2 : 1e1) ) )
+#define U_1e8 unsigned(1e8)
 
-	class intl {
+	class intll {
 		bool sign;
-		std::basic_string<bool> val;
+		basic_string<unsigned> digit;
 		bool is_zero() const;
 
 	public:
-		friend std::istream& operator>> (std::istream& cin, intl& a);
-		friend std::ostream& operator<< (std::ostream& cout, const intl& a);
-		friend std::strong_ordering compare_abs(const intl& a, const intl& b);
-		friend void add_abs(const intl& a, const intl& b, intl& c);
-		friend void substract_abs(const intl& a, const intl& b, intl& c);
+		friend istream& operator>> (istream& cin, intll& a);
+		friend ostream& operator<< (ostream& cout, const intll& a);
 
-		intl() { sign = false; val = {0}; } // maybe it should be `val = {0};` here?
-		intl(const std::string& s);
+		static strong_ordering compare_abs(const intll& a, const intll& b);
+		static void add_abs(const intll& a, const intll& b, intll& c);
+		static void substract_abs(const intll& a, const intll& b, intll& c);
+		static void calculate_abs(const intll& a, const intll& b, intll& c, char op);
 
-		void str_dec(const std::string& s);
-		std::string str_dec() const; // maybe some & should be added here.
-		void str_bin(const std::string& s);
-		std::string str_bin() const;
+		intll() { sign = false; digit = {0}; }
+		intll(const string& s) { this->str(s); }
+		intll(const char* s) { this->str(s); }
+		template<class T> intll(const T& s) { this->str(s); }
 
-		bool operator== (const intl& b) const;
-		std::strong_ordering operator<=> (const intl& b) const;
-
-		intl operator+ () const;
-		intl operator- () const;
-		intl operator+ (const intl& b) const;
-		intl operator- (const intl& b) const;
+		void str(const string& s);
+		void str(const char* s);
+		template<class T> void str(const T& s);
+		string str() const;
+		
+		bool operator== (const intll& b) const;
+		strong_ordering operator<=> (const intll& b) const;
+		
+		intll operator+ () const;
+		intll operator- () const;
+		intll operator+ (const intll& b) const;
+		intll operator- (const intll& b) const;
 	};
 
-	std::istream& operator>> (std::istream& cin, intl& a) {
-		std::string s;
+	istream& operator>> (istream& cin, intll& a) {
+		string s;
 		cin >> s;
-		a.str_dec(s);
+		a.str(s);
 		return cin;
 	}
 
-	std::ostream& operator<< (std::ostream& cout, const intl& a) {
-		std::vector<unsigned> digit = {0};
-
-		for (auto u = a.val.rbegin(); u != a.val.rend(); u++) {
-			bool carry = *u;
-			for (unsigned& x : digit) {
-				x <<= 1, x |= carry;
-				if ((carry = (x >= 1e8))) x -= 1e8;
-			} if (carry) digit.push_back(1);
-		}
-
-		if (a.sign && !a.is_zero()) cout << '-';
-		cout << std::to_string(digit.back());
-		for (auto u = next(digit.rbegin()); u != digit.rend(); u++) {
-			std::string now = std::to_string(*u);
-			cout << std::string(8 - now.size(), '0') << now;
-		}
-
+	ostream& operator<< (ostream& cout, const intll& a) {
+		cout << a.str();
 		return cout;
 	}
 
-	std::strong_ordering compare_abs(const intl& a, const intl& b) {
-		if ((a.is_zero() && b.is_zero()) || a.val == b.val) return std::strong_ordering::equal;
-		bool res = false; // res : is a greater than b?
-		if (a.val.size() == b.val.size()) {
-			for (auto u = a.val.rbegin(), v = b.val.rbegin(); u != a.val.rend(); u++, v++)
-				if (*u != *v) { res = *u; break; }
-		} else res = (a.val.size() > b.val.size());
-		return res ? std::strong_ordering::greater : std::strong_ordering::less;
+	strong_ordering intll::compare_abs(const intll& a, const intll& b) {
+		if ((a.is_zero() && b.is_zero()) || a.digit == b.digit) return strong_ordering::equal;
+		bool res = false;
+		if (a.digit.size() == b.digit.size()) {
+			for (auto u = a.digit.rbegin(), v = b.digit.rbegin(); u != a.digit.rend(); u++, v++)
+				if (*u != *v) { res = (*u > *v); break; }
+		} else res = (a.digit.size() > b.digit.size());
+		return res ? strong_ordering::greater : strong_ordering::less;
 	}
 
-	void add_abs(const intl& a, const intl& b, intl& c) {
-		c.val.clear();
-		auto u = a.val.begin(); bool carry = false;
-		for (auto v = b.val.begin(); v != b.val.end(); u++, v++) {
-			c.val.push_back(*u ^ *v ^ carry);
-			carry = (*u && *v) || ((*u || *v) && carry);
+	void intll::add_abs(const intll& a, const intll& b, intll& c) {
+		c.digit.clear();
+		auto u = a.digit.begin(); bool carry = 0;
+		for (auto v = b.digit.begin(); v != b.digit.end(); u++, v++) {
+			unsigned now = *u + *v + carry;
+			carry = (now >= U_1e8);
+			c.digit.push_back(now - (carry ? U_1e8 : 0));
 		}
-		for (; u != a.val.end(); u++) {
-			c.val.push_back(*u ^ carry);
-			carry = (*u && carry);
+		for (; u != a.digit.end(); u++) {
+			unsigned now = *u + carry;
+			carry = (now >= U_1e8);
+			c.digit.push_back(now - (carry ? U_1e8 : 0));
 		}
-		if (carry) c.val.push_back(1);
+		if (carry) c.digit.push_back(carry);
 	}
 
-	void substract_abs(const intl& a, const intl& b, intl& c) {
-		c.val.clear();
-		auto u = a.val.begin(); bool carry = false;
-		for (auto v = b.val.begin(); v != b.val.end(); u++, v++) {
-			c.val.push_back(*u ^ *v ^ carry);
-			carry = (*u && *v && carry) || (!*u && (*v || carry));
+	void intll::substract_abs(const intll& a, const intll& b, intll& c) {
+		c.digit.clear();
+		auto u = a.digit.begin(); bool carry = 0;
+		for (auto v = b.digit.begin(); v != b.digit.end(); u++, v++) {
+			unsigned now = U_1e8 + *u - *v - carry;
+			carry = (now < U_1e8);
+			c.digit.push_back(now - (carry ? 0 : U_1e8));
 		}
-		for (; u != a.val.end(); u++) {
-			c.val.push_back(*u ^ carry);
-			carry = (!*u && carry);
+		for (; u != a.digit.end(); u++) {
+			unsigned now = U_1e8 + *u - carry;
+			carry = (now < U_1e8);
+			c.digit.push_back(now - (carry ? 0 : U_1e8));
 		}
-		while (c.val.size() > 1 && !c.val.back()) c.val.pop_back();
+		while (!c.digit.empty() && !c.digit.back()) c.digit.pop_back();
+		if (c.digit.empty()) c.digit = {0};
 	}
 
-	void calculate_abs(const intl& a, const intl& b, intl& c, char op) {
+	void intll::calculate_abs(const intll& a, const intll& b, intll& c, char op) {
 		switch (op) {
-			case '+': add_abs(a, b, c); break;
-			case '-': substract_abs(a, b, c); break;
+			case '+': intll::add_abs(a, b, c); break;
+			case '-': intll::substract_abs(a, b, c); break;
 		}
 	}
 
-	bool intl::is_zero() const {
-		for (const bool& i : val) if (i) return false;
+	bool intll::is_zero() const {
+		for (auto u = digit.rbegin(); u != digit.rend(); u++)
+			if (*u) return false;
 		return true;
 	}
 
-	void intl::str_dec(const std::string& s) {
-		val.clear();
-		std::vector<unsigned> digit;
-
+	void intll::str(const string& s) {
+		digit.clear();
 		bool withsign = (s.front() == '+' || s.front() == '-');
 		sign = withsign ? (s.front() == '-') : false;
 		for (size_t i = withsign, j; i < s.size(); i = j) {
 			j = s.size() - ((s.size() - i - 1) >> 3 << 3);
-			digit.push_back(stoul(s.substr(i, j - i)));
+			unsigned now = 0;
+			for (size_t k = i; k < j; k++) (now *= 10) += s[k] ^ 48;
+			digit.push_back(now);
 		}
-
-		for (auto front = digit.begin(); front != digit.end(); !*front ? ++front : decltype(front)()) {
-			bool carry = 0;
-			for (auto u = front; u != digit.end(); u++) {
-				if (carry) *u += 1e8;
-				carry = *u & 1, *u >>= 1;
-			} val.push_back(carry);
-		}
+		reverse(digit.begin(), digit.end());
 	}
+	void intll::str(const char* s) { this->str(string(s)); }
+	template<class T> void intll::str(const T& s) { this->str(to_string(s)); }
 
-	// don't forget to modify cout function!!
-	std::string intl::str_dec() const {
-		std::vector<unsigned> digit = {0};
-
-		for (auto u = val.rbegin(); u != val.rend(); u++) {
-			bool carry = *u;
-			for (unsigned& x : digit) {
-				x <<= 1, x |= carry;
-				if ((carry = (x >= 1e8))) x -= 1e8;
-			} if (carry) digit.push_back(1);
-		}
-
-		std::string res = (sign && !is_zero() ? '-' : char()) + std::to_string(digit.back());
+	string intll::str() const {
+		string res;
+		if (sign && !is_zero()) res.push_back('-');
+		res += to_string(digit.back());
 		for (auto u = next(digit.rbegin()); u != digit.rend(); u++) {
-			std::string now = std::to_string(*u);
-			res += std::string(8 - now.size(), '0') + now;
+			string now = to_string(*u);
+			res += string(8 - now.size(), '0') + now;
 		}
 		return res;
 	}
-
-	void intl::str_bin(const std::string& s) {
-		val.clear();
-		for (auto u = s.rbegin(); u != s.rend(); u++) val.push_back(bool(*u ^ 48));
+	
+	bool intll::operator== (const intll& b) const {
+		return (is_zero() && b.is_zero()) || (sign == b.sign && digit == b.digit);
 	}
-
-	std::string intl::str_bin() const {
-		std::string res;
-		for (auto u = val.rbegin(); u != val.rend(); u++) res += std::to_string(*u);
-		return res;
-	}
-
-	intl::intl(const std::string& s) {
-		this->str_dec(s);
-	}
-
-	bool intl::operator== (const intl& b) const {
-		return (is_zero() && b.is_zero()) || (sign == b.sign && val == b.val);
-	}
-
-	std::strong_ordering intl::operator<=> (const intl& b) const {
+	strong_ordering intll::operator<=> (const intll& b) const {
 		if (operator==(b)) return std::strong_ordering::equal;
 		if (sign && !b.sign) return std::strong_ordering::less;
 		if (!sign && b.sign) return std::strong_ordering::greater;
 		bool res = false; // res : is self greater than b?
-		if (val.size() == b.val.size()) {
-			for (auto u = val.rbegin(), v = b.val.rbegin(); u != val.rend(); u++, v++)
-				if (*u != *v) { res = *u; break; }
-		} else res = (val.size() > b.val.size());
+		if (digit.size() == b.digit.size()) {
+			for (auto u = digit.rbegin(), v = b.digit.rbegin(); u != digit.rend(); u++, v++)
+				if (*u != *v) { res = (*u > *v); break; }
+		} else res = (digit.size() > b.digit.size());
 		return sign ^ res ? std::strong_ordering::greater : std::strong_ordering::less;
 	}
-
-	intl intl::operator+ () const { return *this; }
-	intl intl::operator- () const {
-		intl c = *this;
+	
+	intll intll::operator+ () const { return *this; }
+	intll intll::operator- () const {
+		intll c = *this;
 		c.sign = !c.sign;
 		return c;
 	}
 	
-	intl intl::operator+ (const intl& b) const {
-		intl c;
-
+	intll intll::operator+ (const intll& b) const {
+		intll c;
+		
 		std::strong_ordering cmp = compare_abs(*this, b);
 		char op = (sign == b.sign ? '+' : '-');
 		c.sign = cmp == std::strong_ordering::greater ?
-		         (calculate_abs(*this, b, c, op), sign) : (calculate_abs(b, *this, c, op), b.sign);
-
+		(calculate_abs(*this, b, c, op), sign) : (calculate_abs(b, *this, c, op), b.sign);
+		
 		return c;
 	}
 	
-	intl intl::operator- (const intl& b) const {
-		intl c;
+	intll intll::operator- (const intll& b) const {
+		intll c;
 		
 		std::strong_ordering cmp = compare_abs(*this, b);
 		char op = (sign == !b.sign ? '+' : '-');
@@ -210,22 +174,26 @@ namespace std_intl {
 		
 		return c;
 	}
-
+	
 }
 
-/*
-causion:
-1. positive / negative 0
-2. extra previous 0
-3. parameter order of function ???_abs()
-*/
-
 using namespace std;
-using namespace std_intl;
+
+random_device seed;
+mt19937 randx(114514);
+
+void gen(string& s) {
+	s.clear();
+	int m = randx() % 18 + 1;
+	s.push_back(randx() % 9 + '1');
+	for (int i = 1; i < m; i++) s.push_back(randx() % 10 + '0');
+}
 
 int main() {
-	intl a, b;
-	cin >> a >> b;
-	cout << a - b << "\n";
+	int n; cin >> n;
+	intll x = 1, y = 1;
+	for (int i = 2; i <= n; i++)
+		tie(x, y) = make_tuple(y, x + y);
+	cout << y << "\n";
 	return 0;
 }
