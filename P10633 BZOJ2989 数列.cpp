@@ -11,7 +11,7 @@ namespace std {
 }
 using namespace std;
 const int N = 60000, Q = 110000, M = 160000;
-int n, q, a[N + 10], ans[N + Q + 10];
+int n, m, q, a[N + 10], ans[N + Q + 10];
 tuple<int, int, int> evt[N + Q + 10];
 
 struct Tnum {
@@ -29,16 +29,36 @@ void cdq(int l, int r) {
 	
 	vector<int> idx(r - l + 1);
 	iota(idx.begin(), idx.end(), l);
+	
 	stable_sort(idx.begin(), idx.end(), [](int i, int j) {
-		return get<0>(evt[i]) < get<0>(evt[j]);
+		int pi = get<0>(evt[i]), pj = get<0>(evt[j]);
+		return pi == pj ? get<2>(evt[i]) < get<2>(evt[j]) : pi < pj;
 	} );
-	for (int i : idx) {
-		auto [pos, val, k] = evt[i];
+	t1.clear(), t2.clear();
+	t1.ofs = n + 3, t2.ofs = n + m + 3;
+	for (auto u = idx.begin(); u != idx.end(); u++) {
+		int i = *u; auto [pos, val, k] = evt[i];
 		if (k && pos > mid) {
 			ans[i] += t1.query(k - pos + val);
+			ans[i] += t2.query(k - pos - val);
 		}
 		if (!k && pos <= mid) {
-			
+			t1.modify(- pos + val, 1);
+			t2.modify(- pos - val, 1);
+		}
+	}
+	
+	t1.clear(), t2.clear();
+	t1.ofs = 3, t2.ofs = m + 3;
+	for (auto u = idx.rbegin(); u != idx.rend(); u++) {
+		int i = *u; auto [pos, val, k] = evt[i];
+		if (k && pos > mid) {
+			ans[i] += t1.query(k + pos + val);
+			ans[i] += t2.query(k + pos - val);
+		}
+		if (!k && pos <= mid) {
+			t1.modify(pos + val, 1);
+			t2.modify(pos - val, 1);
 		}
 	}
 }
@@ -47,10 +67,12 @@ int main() {
 	for (int i = 1; i <= n; i++) {
 		cin >> a[i];
 		evt[i] = {i, a[i], 0};
+		m = max(m, a[i]);
 	}
 	for (int i = 1; i <= q; i++) {
 		string op; int x, k;
 		cin >> op >> x >> k;
+		m = max(m, k);
 		if (op[0] == 'M') {
 			evt[n + i] = {x, a[x] = k, 0};
 		} else
@@ -58,7 +80,8 @@ int main() {
 			evt[n + i] = {x, a[x], k};
 		}
 	}
-	t1.ofs = n, t2.ofs;
 	cdq(1, n + q);
+	for (int i = 1; i <= q; i++)
+		if (get<2>(evt[n + i])) cout << ans[n + i] << "\n";
 	return 0;
 }

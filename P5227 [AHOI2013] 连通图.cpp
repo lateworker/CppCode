@@ -27,7 +27,7 @@ void cdq(int u, int l, int r, const vector<pair<int, int> >& cst) {
 	for (auto [x, y] : cst) if (!~col[x]) tag[y] = 0;
 	for (auto [x, y] : cst) if (!~col[x]) {
 		col[x] = y;
-		if (!tag[y]) vec.push_back(y);
+		if (!tag[y]) vec.push_back(y), tag[y] = y;
 	}
 	for (int c : vec) g[c].clear();
 	
