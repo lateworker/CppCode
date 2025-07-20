@@ -10,9 +10,9 @@ namespace std {
 	};
 }
 using namespace std;
-const int N = 60000, Q = 110000, M = 160000;
-int n, m, q, a[N + 10], ans[N + Q + 10];
-tuple<int, int, int> evt[N + Q + 10];
+const int N = 60000, Q = 60000, M = 400000, inf = 0x3f3f3f3f;
+int n, q, a[N + 10], ans[Q + 10];
+vector<tuple<int, int, int, int> > evt;
 
 struct Tnum {
 	Array<int, M + 10> st;
@@ -20,7 +20,7 @@ struct Tnum {
 	void modify(int u, int val) { for (u += ofs; u <= M; u += u & -u) st[u] += val; }
 	int query(int u) { int res = 0; for (u += ofs; u; u -= u & -u) res += st[u]; return res; }
 	void clear() { st.clear(); }
-} t1, t2;
+} st;
 
 void cdq(int l, int r) {
 	if (l == r) return;
@@ -31,57 +31,50 @@ void cdq(int l, int r) {
 	iota(idx.begin(), idx.end(), l);
 	
 	stable_sort(idx.begin(), idx.end(), [](int i, int j) {
-		int pi = get<0>(evt[i]), pj = get<0>(evt[j]);
-		return pi == pj ? get<2>(evt[i]) < get<2>(evt[j]) : pi < pj;
+		int xi = get<0>(evt[i]), xj = get<0>(evt[j]);
+		return xi < xj;
 	} );
-	t1.clear(), t2.clear();
-	t1.ofs = n + 3, t2.ofs = n + m + 3;
-	for (auto u = idx.begin(); u != idx.end(); u++) {
-		int i = *u; auto [pos, val, k] = evt[i];
-		if (k && pos > mid) {
-			ans[i] += t1.query(k - pos + val);
-			ans[i] += t2.query(k - pos - val);
-		}
-		if (!k && pos <= mid) {
-			t1.modify(- pos + val, 1);
-			t2.modify(- pos - val, 1);
-		}
-	}
 	
-	t1.clear(), t2.clear();
-	t1.ofs = 3, t2.ofs = m + 3;
-	for (auto u = idx.rbegin(); u != idx.rend(); u++) {
-		int i = *u; auto [pos, val, k] = evt[i];
-		if (k && pos > mid) {
-			ans[i] += t1.query(k + pos + val);
-			ans[i] += t2.query(k + pos - val);
+	st.clear();
+	for (int i : idx) {
+		auto [x, y, yy, qid] = evt[i];
+		if (i <= mid && !qid) {
+			st.modify(y, 1);
 		}
-		if (!k && pos <= mid) {
-			t1.modify(pos + val, 1);
-			t2.modify(pos - val, 1);
+		if (i > mid && qid) {
+			int op = qid > 0 ? 1 : -1; qid = abs(qid);
+			ans[qid] += op * (st.query(yy) - st.query(y - 1));
 		}
 	}
 }
 int main() {
 	cin >> n >> q;
+	int miny = inf;
 	for (int i = 1; i <= n; i++) {
 		cin >> a[i];
-		evt[i] = {i, a[i], 0};
-		m = max(m, a[i]);
+		int x = i + a[i], y = i - a[i];
+		miny = min(miny, y);
+		evt.emplace_back(x, y, y, 0);
 	}
+	int pszq = 0;
 	for (int i = 1; i <= q; i++) {
-		string op; int x, k;
-		cin >> op >> x >> k;
-		m = max(m, k);
+		string op; int pos, val;
+		cin >> op >> pos >> val;
 		if (op[0] == 'M') {
-			evt[n + i] = {x, a[x] = k, 0};
+			a[pos] = val;
+			int x = pos + val, y = pos - val;
+			miny = min(miny, y);
+			evt.emplace_back(x, y, y, 0);
 		} else
 		if (op[0] == 'Q') {
-			evt[n + i] = {x, a[x], k};
+			int x = pos + a[pos], y = pos - a[pos];
+			miny = min(miny, y - val);
+			evt.emplace_back(x + val, y - val, y + val, ++pszq);
+			evt.emplace_back(x - val - 1, y - val, y + val, -pszq);
 		}
 	}
-	cdq(1, n + q);
-	for (int i = 1; i <= q; i++)
-		if (get<2>(evt[n + i])) cout << ans[n + i] << "\n";
+	st.ofs = -miny + 3;
+	cdq(0, evt.size() - 1);
+	for (int i = 1; i <= pszq; i++) cout << ans[i] << "\n";
 	return 0;
 }
