@@ -1,5 +1,4 @@
 #include <bits/stdc++.h>
-
 namespace std {
 	
 	unsigned fpow(unsigned a, unsigned b, unsigned Mod) {
@@ -271,20 +270,16 @@ namespace std {
 	}
 	
 }
-
 using namespace std;
-const int N = 1000;
-int n, a[N + 10], b[N + 10];
-int main() {
-	cin >> n;
-	for (int i = 0; i <= n; i++) cin >> a[i] >> b[i];
-	vector<int> idx(n);
-	iota(idx.begin(), idx.end(), 1);
-	sort(idx.begin(), idx.end(), [&](int i, int j) { return a[i] * b[i] < a[j] * b[j]; } );
-	intll pi = a[0], ans = 0;
-	for (int i : idx) {
-		
-		pi *= a[i];
+intll fpow(intll a, int b) { intll c = 1; for (; b; a *= a, b >>= 1) if (b & 1) c *= a; return c; }
+int main() { cin.tie(0)->sync_with_stdio(0);
+	int T; cin >> T;
+	while (T--) {
+		int n; cin >> n;
+		intll f = 0;
+		for (int i = 1; i <= n; i++)
+			f = fpow(2, i) - 1 - f;
+		cout << f << "\n";
 	}
 	return 0;
 }
