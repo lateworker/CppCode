@@ -1,37 +1,11 @@
+#define ffopen(s) \
+cin.tie(0)->sync_with_stdio(0); \
+if (*#s) freopen(#s ".in", "r", stdin); \
+if (*#s) freopen(#s ".out", "w", stdout); \
+/**/
 #include <bits/stdc++.h>
-
+using intl = long long;
 namespace std {
-
-// Array
-	template<class T_, size_t N_, T_ DEFAULT_ = T_()>
-	class Array {
-		T_ val[N_]; size_t ver[N_], clk;
-	public:
-		Array() { clk = 1; }
-		T_& operator[] (size_t i) { if (ver[i] != clk) ver[i] = clk, val[i] = DEFAULT_; return val[i]; }
-		void clear() { ++clk; }
-	};
-
-// Graph
-	template<class T_, size_t N_>
-	class Graph {
-		inline static size_t psz;
-		inline static std::pair<T_, size_t> pool[N_];
-		struct iterator {
-			size_t now;
-			T_& operator* () const { return pool[now].first; }
-			bool operator== (iterator it) const { return now == it.now; }
-			iterator& operator++ () { now = pool[now].second; return *this; }
-		}; size_t head;
-	public:
-		Graph() { head = 0; }
-		iterator begin() const { return {head}; }
-		iterator end() const { return {0}; }
-		void push_back(const T_& val) { ++psz, this->pool[psz] = {val, head}, head = psz; }
-		void clear() { psz = head = 0; }
-	};
-
-// Matrix
 	template<class T_>
 	class Matrix {
 		size_t n, m;
@@ -177,9 +151,29 @@ namespace std {
 	template<class T_> Matrix<T_>& Matrix<T_>::operator-= (const Matrix<T_>& b) { return *this = *this - b; }
 	template<class T_> Matrix<T_>& Matrix<T_>::operator*= (const T_& k)         { return *this = *this * k; }
 	template<class T_> Matrix<T_>& Matrix<T_>::operator*= (const Matrix<T_>& b) { return *this = *this * b; }
-
 }
-
+using namespace std;
+const int N = 100000, Mod = 998244353;
+struct mint {
+	int val;
+	int gval() const { return val; }
+//	mint() { val = 0; }
+};
+mint operator+ (const mint& a, const mint& b) { mint c; c.val = (a.val + b.val) % Mod; return c; }
+mint operator* (const mint& a, const mint& b) { mint c; c.val = (intl) a.val * b.val % Mod; return c; }
+int n, k;
+Matrix<mint> fpow(Matrix<mint> a, int b) {
+	if (!b) return Matrix<mint>::identity(1, {1});
+	Matrix<mint> c = Matrix<mint>::identity(n, {1});
+	for (; b; a *= a, b >>= 1) if (b & 1) c *= a;
+	return c;
+}
 int main() {
+	cin >> n >> k;
+	Matrix<mint> a(n, 1), b(1, n);
+	for (int i = 0; i < n; ++i) { int x; cin >> x; a[i][0] = {x}; }
+	for (int i = 0; i < n; ++i) { int x; cin >> x; b[0][i] = {x}; }
+	if (!k) return cout << n << "\n", 0;
+	cout << ((Matrix<mint>(1, n, {1}) * a) * fpow(b * a, k - 1) * (b * Matrix<mint>(n, 1, {1})))[].gval() << "\n";
 	return 0;
 }
