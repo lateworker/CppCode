@@ -10,7 +10,7 @@ const int N = 100000;
 int n, m;
 intl st[N * 2 + 10], tg[N * 2 + 10], sz[N * 2 + 10];
 void pushup(int u) {
-//	if (!u) return;
+	if (!u) return;
 	st[u] = st[u << 1] + st[u << 1 | 1];
 }
 void modify(int u, intl val) {
@@ -24,25 +24,23 @@ void pushdown(int u) {
 		tg[u] = 0;
 	}
 }
-void chkmax(int& x, const int& y) { x = max(x, y); }
 void update(int l, int r, intl val) {
 	l += n, r += n + 1;
 	for (int i = __lg(n) + 1; i; i--) pushdown(l >> i), pushdown(r >> i);
-	int u = 0, v = 0;
-	while (l < r) {
-		if (l & 1) chkmax(u, l), modify(l++, val);
-		if (r & 1) chkmax(v, r), modify(--r, val);
-		l >>= 1, r >>= 1;
-	} while (u >>= 1) pushup(u); while (v >>= 1) pushup(v);
+	for (int u = 0, v = 0; l < r; l >>= 1, r >>= 1) {
+		if (l & 1) u = l, modify(l++, val);
+		if (r & 1) v = r, modify(--r, val);
+		do pushup(u >>= 1); while (l == r && u);
+		do pushup(v >>= 1); while (l == r && v);
+	} 
 }
 intl query(int l, int r) {
 	l += n, r += n + 1;
 	for (int i = __lg(n) + 1; i; i--) pushdown(l >> i), pushdown(r >> i);
 	intl res = 0;
-	while (l < r) {
+	for (; l < r; l >>= 1, r >>= 1) {
 		if (l & 1) res += st[l++];
 		if (r & 1) res += st[--r];
-		l >>= 1, r >>= 1;
 	} return res;
 }
 int main() { ffopen();
@@ -56,16 +54,10 @@ int main() { ffopen();
 		sz[i] = sz[i << 1] + sz[i << 1 | 1];
 	}
 	for (int i = 1; i <= m; i++) {
-		int op; cin >> op;
-		if (op == 1) {
-			intl x, y, k;
-			cin >> x >> y >> k;
-			update(x, y, k);
-		} else {
-			int x, y;
-			cin >> x >> y;
-			cout << query(x, y) << "\n";
-		}
+		int op, x, y; intl k;
+		cin >> op >> x >> y;
+		if (op == 1) { cin >> k; update(x, y, k); }
+		if (op == 2) { cout << query(x, y) << "\n"; }
 	}
 	return 0;
 }
