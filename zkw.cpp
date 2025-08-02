@@ -43,7 +43,7 @@ intl query(int l, int r) {
 		if (r & 1) res += st[--r];
 	} return res;
 }
-int main() { ffopen();
+int main() { //ffopen();
 	cin >> n >> m;
 	for (int i = 1; i <= n; i++) {
 		cin >> st[i + n];
@@ -58,6 +58,7 @@ int main() { ffopen();
 		cin >> op >> x >> y;
 		if (op == 1) { cin >> k; update(x, y, k); }
 		if (op == 2) { cout << query(x, y) << "\n"; }
+		if (op == 3) cin >> k;
 	}
 	return 0;
 }
