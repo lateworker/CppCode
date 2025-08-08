@@ -7,7 +7,7 @@ if (*#s) freopen(#s ".out", "w", stdout); \
 using namespace std;
 using intl = long long;
 const int N = 100000;
-int n, m;
+int n, tn, m;
 intl st[N * 2 + 10], tg[N * 2 + 10], sz[N * 2 + 10];
 void pushup(int u) {
 	st[u] = st[u << 1] + st[u << 1 | 1];
@@ -24,39 +24,44 @@ void pushdown(int u) {
 	}
 }
 void update(int l, int r, intl val) {
-	l += n, r += n + 1;
-	for (int i = __lg(n) + 1; i; i--) pushdown(l >> i), pushdown(r >> i);
-	for (int u = 0, v = 0; l < r; l >>= 1, r >>= 1) {
-		if (l & 1) u = l, modify(l++, val);
-		if (r & 1) v = r, modify(--r, val);
-		do pushup(u >>= 1); while (l == r && u);
-		do pushup(v >>= 1); while (l == r && v);
-	} 
+	l += tn - 1, r += tn + 1;
+	for (int i = __lg(tn); i; i--) pushdown(l >> i), pushdown(r >> i);
+	for (; l ^ r ^ 1; pushup(l >>= 1), pushup(r >>= 1)) {
+		if (~l & 1) modify(l ^ 1, val);
+		if (r & 1) modify(r ^ 1, val);
+	} while (l >>= 1) pushup(l);
 }
 intl query(int l, int r) {
-	l += n, r += n + 1;
-	for (int i = __lg(n) + 1; i; i--) pushdown(l >> i), pushdown(r >> i);
+	l += tn - 1, r += tn + 1;
+	for (int i = __lg(tn); i; i--) pushdown(l >> i), pushdown(r >> i);
 	intl res = 0;
-	for (; l < r; l >>= 1, r >>= 1) {
-		if (l & 1) res += st[l++];
-		if (r & 1) res += st[--r];
+	for (; l ^ r ^ 1; l >>= 1, r >>= 1) {
+		if (~l & 1) res += st[l ^ 1];
+		if (r & 1) res += st[r ^ 1];
 	} return res;
 }
 int main() { ffopen();
 	cin >> n >> m;
+	for (tn = 1; tn <= n + 1; tn <<= 1);
 	for (int i = 1; i <= n; i++) {
-		cin >> st[i + n];
-		sz[i + n] = 1;
+		cin >> st[i + tn];
+		sz[i + tn] = 1;
 	}
-	for (int i = n - 1; i; i--) {
+	for (int i = tn - 1; i; i--) {
 		st[i] = st[i << 1] + st[i << 1 | 1];
 		sz[i] = sz[i << 1] + sz[i << 1 | 1];
 	}
 	for (int i = 1; i <= m; i++) {
-		int op, x, y; intl k;
-		cin >> op >> x >> y;
-		if (op == 1) { cin >> k; update(x, y, k); }
-		if (op == 2) { cout << query(x, y) << "\n"; }
+		int op; cin >> op;
+		if (op == 1) {
+			intl x, y, k;
+			cin >> x >> y >> k;
+			update(x, y, k);
+		} else {
+			int x, y;
+			cin >> x >> y;
+			cout << query(x, y) << "\n";
+		}
 	}
 	return 0;
 }
