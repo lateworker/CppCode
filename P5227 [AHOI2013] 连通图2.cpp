@@ -1,76 +1,51 @@
 #include <bits/stdc++.h>
 using namespace std;
 const int N = 100000, M = 200000;
-int n, m, q, col[N + 10], down[N + 10];
-vector<int> tim[M + 10], pnt[N * 4 + 10], evt[N * 4 + 10];
+int n, m, tn, q;
+vector<int> tim[M + 10], evt[N * 3 + 10];
 pair<int, int> e[M + 10];
-void update(int u, int l, int r, int lf, int rt, int i) {
-	pnt[u].push_back(e[i].first);
-	pnt[u].push_back(e[i].second);
-	if (lf <= l && r <= rt) { evt[u].push_back(i); return; }
-	int mid = (l + r) >> 1;
-	if (lf <= mid) update(u << 1, l, mid, lf, rt, i);
-	if (mid < rt) update(u << 1 | 1, mid + 1, r, lf, rt, i);
-}
-bool adj[N + 10];
-void adjust(int u, int l, int r) {
-	vector<int> vec;
-	for (int x : pnt[u]) adj[x] = false;
-	for (int x : pnt[u]) if (!adj[x]) adj[x] = true, vec.push_back(x);
-	pnt[u].swap(vec);
-	if (l == r) { down[l] = u; return; }
-	int mid = (l + r) >> 1;
-	adjust(u << 1, l, mid), adjust(u << 1 | 1, mid + 1, r);
-}
-void unik(vector<int>& vec) {
-	vector<int> res;
-	for (int x : vec) adj[x] = false;
-	for (int x : vec) if (!adj[x]) adj[x] = true, res.push_back(x);
-	vec.swap(res);
-}
-bool ans[N * 4 + 10];
-
-int ffind(int u) { return col[u] == u ? u : col[u] = ffind(col[u]); }
-
-void cdq(int u, int l, int r) {
-	unik(pnt[u]);
-	
-	if (u != 1) {
-		
-	} else ans[u] = true;
-	
-//	vector<int> vec;
-//	for (int x : pnt[u])
-
-	for (int i : evt[u]) {
-		auto [x, y] = e[i];
-		if (col[x] == col[y]) continue;
-		col[col[x]] = col[y];
+struct DSU {
+	int fa[N + 10], siz[N + 10];
+	vector<tuple<int, int, int, int> > rec;
+	int find(int u) { return fa[u] == u ? u : find(fa[u]); }
+	void merge(int u, int v) {
+		u = find(u), v = find(v);
+		if (u == v) return;
+		if (siz[u] < siz[v]) swap(u, v);
+		rec.emplace_back(u, v, fa[v], siz[u]);
+		fa[v] = u, siz[u] += siz[v];
 	}
-
-	if (l == r) {
-		auto check = [&]() {
-			if (pnt[u].empty()) return true;
-			int c = tag[col[pnt[u].front()]];
-			for (int x : pnt[u]) {
-				if (c != tag[col[x]]) return false;
-			} return true;
-		}; ans[u] &= check();
-	} else {
+	void undo() {
+		auto [u, v, fav, sizu] = rec.back();
+		fa[v] = fav, siz[u] = sizu;
+		rec.pop_back();
+	}
+} dsu;
+void update(int l, int r, int i) {
+	for (l += tn - 1, r += tn; l < r; l >>= 1, r >>= 1) {
+		if (l & 1) evt[l++].push_back(i);
+		if (r & 1) evt[--r].push_back(i);
+	}
+}
+bool ans[N + 10];
+void cdq(int u, int l, int r) {
+	if (l >= q) return;
+	int siz = dsu.rec.size();
+	for (int i : evt[u]) dsu.merge(e[i].first, e[i].second);
+	if (l == r) ans[l + 1] = (dsu.siz[dsu.find(1)] == n);
+	else {
 		int mid = (l + r) >> 1;
 		cdq(u << 1, l, mid);
 		cdq(u << 1 | 1, mid + 1, r);
 	}
+	while ((int) dsu.rec.size() > siz) dsu.undo();
 }
-int query(int i) {
-	for (int u = down[i]; u; u >>= 1)
-		if (!pnt[u].empty()) return ans[u];
-	return false;
-}
-int main() { // cin.tie(0)->sync_with_stdio(0);
+int main() { cin.tie(0)->sync_with_stdio(0);
 	cin >> n >> m;
+	for (int i = 1; i <= n; i++) dsu.fa[i] = i, dsu.siz[i] = 1;
 	for (int i = 1; i <= m; i++) cin >> e[i].first >> e[i].second;
 	cin >> q;
+	for (tn = 1; tn <= q; tn <<= 1);
 	for (int i = 1; i <= q; i++) {
 		int c; cin >> c;
 		for (int j = 1; j <= c; j++) {
@@ -82,12 +57,11 @@ int main() { // cin.tie(0)->sync_with_stdio(0);
 	for (int i = 1; i <= m; i++) {
 		int la = 0;
 		for (int j : tim[i]) {
-			if (la + 1 <= j - 1) update(1, 1, q, la + 1, j - 1, i);
+			if (la + 1 <= j - 1) update(la + 1, j - 1, i);
 			la = j;
 		}
 	}
-	for (int i = 1; i <= n; i++) col[i] = i;
-	adjust(1, 1, q), cdq(1, 1, q);
-	for (int i = 1; i <= q; i++) cout << (query(i) ? "Connected" : "Disconnected") << "\n";
+	cdq(1, 0, tn - 1);
+	for (int i = 1; i <= q; i++) cout << (ans[i] ? "Connected" : "Disconnected") << "\n";
 	return 0;
 }
