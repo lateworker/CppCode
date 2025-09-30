@@ -10,29 +10,27 @@ template<typename T_, size_t N_, T_ DEFAULT_ = T_()> class Array { T_ val[N_]; s
 template<typename T_, size_t N_> class Graph { inline static size_t psz; inline static std::pair<T_, size_t> pool[N_]; struct iterator { size_t now; T_& operator* () const { return pool[now].first; } bool operator== (iterator it) const { return now == it.now; } iterator& operator++ () { now=pool[now].second; return *this; } }; size_t head; public: Graph() { head = 0; } iterator begin() const { return {head}; } iterator end() const { return {0}; } void push_back(const T_& val) { ++psz,this->pool[psz]={val, head},head=psz; } void clear() { psz=head=0; } };
 using namespace std;
 using intl = long long;
-const intl N = 200000, Mod = 1000000007;
-int n, a[N + 10];
-struct BIT {
-	Array<intl, N + 10> st;
-	void modify(int u, intl val) { for (; u <= n; u += u & -u) st[u] += val, st[u] %= Mod; }
-	intl query(int u) { intl res = 0; for (; u; u -= u & -u) res += st[u], res %= Mod; return res % Mod; }
-	void clear() { st.clear(); }
-} st;
+int n, m;
 void slove() {
-	cin >> n;
-	intl ans = 1;
-	for (int i = 1, ma = 0; i <= n; i++) {
-		cin >> a[i]; chkmax(ma, a[i]);
-		st.modify(a[i], st.query(a[i]) + 1);
-		if (ma == i) {
-			ans *= st.query(n) % Mod, ans %= Mod;
-			ma = 0, st.clear();
+	cin >> n >> m;
+	if (m > (1 << (n + 1)) - n - 2 && m != (1 << (n + 1)) - 1) { cout << "No\n"; return; }
+	cout << "Yes\n";
+	int cnt = 0;
+	for (int lev = n; ~lev; --lev) {
+		int siz = (1 << (lev + 1)) - 1;
+		while (siz <= m) {
+			for (int i = 1; i <= (1 << lev); i++) cout << '1', ++cnt;
+			if (m - siz >= siz) for (int i = 1; i <= (1 << lev); i++) cout << '0', ++cnt;
+			m -= siz;
 		}
 	}
-	cout << ans % Mod << "\n";
+	for (; cnt < (1 << n); cnt++) cout << '0';
+	cout << '\n';
 }
 int main() { ffopen();
 	int T; cin >> T;
-	while (T--) { slove(); }
+	while (T--) {
+		slove();
+	}
 	return 0;
 }
