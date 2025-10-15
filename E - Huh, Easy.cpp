@@ -1,8 +1,11 @@
+#define MultiCase (cin >> CaseId)
+#define Main(Callback) main() { int CaseId = 1; { Callback } CaseLoop:
+#define Return if (--CaseId) { goto CaseLoop; } else return 0
 #define ffopen(s) \
-cin.tie(0)->sync_with_stdio(0); \
+ios::sync_with_stdio(0), cin.tie(0), cout.tie(0), cerr.tie(0); \
 if (*#s) freopen(#s ".in", "r", stdin); \
 if (*#s) freopen(#s ".out", "w", stdout); \
-/**/
+//
 #include <bits/stdc++.h>
 #define chkmax(x, y) ((x)=max((x),(y)))
 #define chkmin(x, y) ((x)=min((x),(y)))
@@ -10,19 +13,20 @@ template<typename T_, size_t N_, T_ DEFAULT_ = T_()> class Array { T_ val[N_]; s
 template<typename T_, size_t N_> class Graph { inline static size_t psz; inline static std::pair<T_, size_t> pool[N_]; struct iterator { size_t now; T_& operator* () const { return pool[now].first; } bool operator== (iterator it) const { return now == it.now; } iterator& operator++ () { now=pool[now].second; return *this; } }; size_t head; public: Graph() { head = 0; } iterator begin() const { return {head}; } iterator end() const { return {0}; } void push_back(const T_& val) { ++psz,this->pool[psz]={val, head},head=psz; } void clear() { psz=head=0; } };
 using namespace std;
 using intl = long long;
-const int N = 200000;
-int n, a[N + 10];
-int main() { ffopen();
-	int T; cin >> T;
-	while (T--) {
-		cin >> n;
-		int cnt3 = 0, sum = 0;
-		for (int i = 1; i <= n; i++) {
-			cin >> a[i];
-			if (a[i] == 3) ++cnt3;
-			else sum += a[i];
-		}
-		cout << ((sum & 1) || cnt3 > 1) * (n - cnt3) + ((~ sum & 1) || cnt3 > 2) * cnt3 << '\n';
+const int N = 1000;
+int n, m;
+char s[N + 10];
+int Main(ffopen(); MultiCase; ) {
+	cin >> n >> m;
+	if (m < n >> 1) { cout << "-1\n"; Return; }
+	for (int i = 0; i < n; i++)
+		s[i] = i & 1 ? 'A' : 'B';
+	s[n] = '\0';
+	cout << s << '\n';
+	int ned = n - m;
+	for (int i = 0; i < n; i += 2) {
+		if (ned) s[i] ^= 1, --ned;
+		else break;
 	}
-	return 0;
-}
+	cout << s << '\n';
+} Return; }

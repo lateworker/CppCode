@@ -1,8 +1,11 @@
+#define MultiCase (cin >> CaseId)
+#define Main(Callback) main() { int CaseId = 1; { Callback } CaseLoop:
+#define Return if (--CaseId) { goto CaseLoop; } else return 0
 #define ffopen(s) \
-cin.tie(0)->sync_with_stdio(0); \
+ios::sync_with_stdio(0), cin.tie(0), cout.tie(0), cerr.tie(0); \
 if (*#s) freopen(#s ".in", "r", stdin); \
 if (*#s) freopen(#s ".out", "w", stdout); \
-/**/
+//
 #include <bits/stdc++.h>
 #define chkmax(x, y) ((x)=max((x),(y)))
 #define chkmin(x, y) ((x)=min((x),(y)))
@@ -11,29 +14,37 @@ template<typename T_, size_t N_> class Graph { inline static size_t psz; inline 
 using namespace std;
 using intl = long long;
 const int N = 200000;
-int n, a[N + 10];
-void slove() {
-	cin >> n;
-	int cnt = 0;
-	for (int i = 1; i <= n; i++) {
-		cin >> a[i];
-		if (a[i] == i) ++cnt;
+int n, deg[N + 10], ans[N + 10], rt, psz;
+Graph<int, N * 2 + 10> g[N + 10];
+void dfs(int u, int p) {
+	vector<int> vec;
+	for (int v : g[u]) if (v != p) {
+		dfs(v, u), vec.push_back(v);
 	}
-	cout << (
-		( cnt + 1 - [&]() {
-			if (~ n & 1) return 0;
-			int p = (n + 1) >> 1;
-			if (a[p] != p) return 0;
-			for (int i = 1; i < p; i++)
-				if (a[i] != i && a[i] < p) return 0;
-			for (int i = n; i > p; i--)
-				if (a[i] != i && a[i] > p) return 0;
-			return 1;
-		}() ) >> 1
-	) << '\n';
+	if (u == rt) { ans[u] = ans[vec.back()] = ++psz; }
+	else {
+		for (int i = 0; i < (int) vec.size(); i += 2) {
+			ans[vec[i]] = ans[vec[i + 1]] = ++psz;
+		}
+	}
 }
-int main() { ffopen();
-	int T; cin >> T;
-	while (T--) { slove(); }
-	return 0;
-}
+int Main(ffopen(); MultiCase; ) {
+	for (int i = 1; i <= n; i++) {
+		deg[i] = ans[i] = 0;
+		g[i].clear();
+	} psz = 0;
+	
+	cin >> n;
+	for (int i = 2; i <= n; i++) {
+		int fa; cin >> fa;
+		g[fa].push_back(i);
+		g[i].push_back(fa);
+		++deg[i], ++deg[fa];
+	}
+	for (int i = 1; i <= n; i++) {
+		if (~ deg[i] & 1) { cout << "-1\n"; Return; }
+		if (deg[i] == 1) rt = i;
+	}
+	dfs(rt, 0);
+	for (int i = 1; i <= n; i++) cout << ans[i] << " \n"[i == n];
+} Return; }

@@ -10,24 +10,20 @@ template<typename T_, size_t N_, T_ DEFAULT_ = T_()> class Array { T_ val[N_]; s
 template<typename T_, size_t N_> class Graph { inline static size_t psz; inline static std::pair<T_, size_t> pool[N_]; struct iterator { size_t now; T_& operator* () const { return pool[now].first; } bool operator== (iterator it) const { return now == it.now; } iterator& operator++ () { now=pool[now].second; return *this; } }; size_t head; public: Graph() { head = 0; } iterator begin() const { return {head}; } iterator end() const { return {0}; } void push_back(const T_& val) { ++psz,this->pool[psz]={val, head},head=psz; } void clear() { psz=head=0; } };
 using namespace std;
 using intl = long long;
-const int N = 200000;
-int n, a[N + 10];
-void slove() {
-	cin >> n; n <<= 1;
-	priority_queue<pair<int, int> > que;
-	for (int i = 1; i <= n; i++) {
-		cin >> a[i];
-		que.emplace(a[i], i);
-	}
-	intl ans = 0;
-	for (int i = 1; i <= (n >> 1); i++) {
-		while (que.top().second < i) que.pop();
-		ans += (intl) que.top().first; que.pop();
-	}
-	cout << ans << '\n';
-}
+const int N = 200000, inf = 0x3f3f3f3f;
 int main() { ffopen();
 	int T; cin >> T;
-	while (T--) { slove(); }
+	while (T--) {
+		int n, ma = -inf, mi = inf;
+		cin >> n;
+		for (int i = 1; i <= n; i++) {
+			int x; cin >> x;
+			chkmax(ma, x);
+			chkmin(mi, x);
+		}
+		if ((intl) ma + ma > ma) { cout << ma << ' ' << ma << '\n'; continue; }
+		if ((intl) mi + mi < mi) { cout << mi << ' ' << mi << '\n'; continue; }
+		cout << "-1\n";
+	}
 	return 0;
 }
