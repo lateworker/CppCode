@@ -9,91 +9,54 @@ if (*#s) freopen(#s ".out", "w", stdout); \
 using namespace std;
 using intl = long long;
 using pii = pair<int, int>;
-const int N = 1000000;
+const int N = 1000000, inf = 0x3f3f3f3f;
 int n, q, a[N + 10], ans[N + 10];
 struct Segt {
-	Segt *le, *ri;
-	int val;
-	Segt() { le = ri = this; val = 0; }
-} pool[N * 8 + 10]; int psz;
-Segt* node() {
-	Segt* u = pool + (++psz);
-	u->le = u->ri = pool;
-	u->val = 0;
-	return u;
-}
-Segt* copy(Segt* u) { Segt* v = node(); *v = *u; return v; }
-void pushup(Segt* u) { if (u != pool) u->val = min(u->le->val, u->ri->val); }
-void update(Segt*& u, int l, int r, int pos, int val, bool ctr = true) {
-	if (ctr) u = copy(u);
-	else if (u == pool) u = node();
-	if (l == r) { u->val = val; return; }
-	int mid = (l + r) >> 1;
-	pos <= mid ? update(u->le, l, mid, pos, val) : update(u->ri, mid + 1, r, pos, val);
-	pushup(u);
-}
-int query(Segt* u, int l, int r, int pos) {
-	if (u == pool) return l;
-	if (u->val >= pos) return -1;
-	if (l == r) return l;
-	int mid = (l + r) >> 1;
-	int res = query(u->le, l, mid, pos);
-	if (res == -1) res = query(u->ri, mid + 1, r, pos);
-	return res;
-}
-Segt* root[N + 10];
-vector<int> g[N + 10];
-vector<pii> seg[N + 10], qry[N + 10], evt[N + 10];
+	int st[N * 3 + 10], tn;
+	void build(int n) {
+		for (tn = 1; tn <= n + 1; tn <<= 1);
+		memset(st, 0, (tn + n + 3) * sizeof(*st));
+	}
+	void pushup(int u) { if (u) st[u] = min(st[u << 1], st[u << 1 | 1]); }
+	void modify(int u, int val) { st[u += tn] = val; do pushup(u >>= 1); while (u); }
+	int query(int l, int r) {
+		int res = inf;
+		for (l += tn, r += tn + 1; l < r; l >>= 1, r >>= 1) {
+			if (l & 1) chkmin(res, st[l++]);
+			if (r & 1) chkmin(res, st[--r]);
+		} return res;
+	}
+	int find(int pos) {
+		int u = 1;
+		while (u < tn) {
+			int now = st[u <<= 1];
+			if (now >= pos) u ^= 1;
+		} return u - tn;
+	}
+	int operator[] (const int& i) { return st[i + tn]; }
+} las, st;
+struct Q { int l, r, i; } qry[N + 10];
 int main() { ffopen();
 	cin >> n >> q;
-	root[0] = pool;
-	for (int i = 1; i <= n; i++) {
-		cin >> a[i], --a[i];
-		update(root[i] = root[i - 1], 0, n, a[i], i);
-		g[a[i]].push_back(i);
-		seg[!a[i]].emplace_back(i, i);
-	}
-	for (int i = 1; i < n; i++) {
-		for (auto [l, r] : seg[i]) {
-			auto u = upper_bound(g[i].begin(), g[i].end(), r);
-			if (u != g[i].end()) seg[query(root[*u], 0, n, l)].emplace_back(l, *u);
-			u = lower_bound(g[i].begin(), g[i].end(), l);
-			if (u != g[i].begin()) --u, seg[query(root[r], 0, n, *u)].emplace_back(*u, r);
-		}
-	}
-	for (int i = 0; i <= n; i++) {
-		sort(seg[i].begin(), seg[i].end(), [&](const pii& x, const pii& y) {
-			return x.second == y.second ? x.first > y.first : x.second < y.second;
-		} );
-		vector<pii> now;
-		int mal = 0;
-		for (auto [l, r] : seg[i]) {
-			if (l > mal) {
-				now.emplace_back(l, r);
-				evt[r].emplace_back(l, i);
-			}
-			chkmax(mal, l);
-		}
-		seg[i].swap(now);
-//		cerr << i << '\n';
-//		for (auto[ l, r] : seg[i]) cerr << l << ' ' << r << '\n';
-	}
+	for (int i = 1; i <= n; i++) cin >> a[i], --a[i];
 	for (int i = 1; i <= q; i++) {
 		int l, r; cin >> l >> r;
-		qry[r].emplace_back(l, i);
+		qry[i] = {l, r, i};
 	}
-	psz = 0; Segt* rt = pool;
-	for (int i = 1; i <= n; i++) {
-		for (auto [j, mex] : evt[i]) {
-			update(rt, 0, n, mex, j, false);
-			assert(pool->val == 0);
+	sort(qry + 1, qry + 1 + q, [&](const Q& x, const Q& y) { return x.r < y.r; } );
+	las.build(n), st.build(n + 1);
+	for (int i = 1, k = 1; i <= n; i++) {
+		int p = las[a[i]]; las.modify(a[i], i);
+		if (a[i]) st.modify(0, i);
+		for (int j = las.query(0, a[i]), mex; j > p; j = las[mex]) {
+			mex = las.find(j);
+			st.modify(mex, j);
 		}
-		for (auto [j, idx] : qry[i]) {
-			ans[idx] = query(rt, 0, n, j) + 1;
+		while (k <= q && qry[k].r == i) {
+			ans[qry[k].i] = st.find(qry[k].l);
+			k -=- 1;
 		}
 	}
-	for (int i = 1; i <= q; i++) {
-		cout << ans[i] << '\n';
-	}
+	for (int i = 1; i <= q; i++) cout << ans[i] + 1 << '\n';
 	return 0;
 }
