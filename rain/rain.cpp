@@ -9,22 +9,16 @@ if (*#s) freopen(#s ".out", "w", stdout); \
 using namespace std;
 using intl = long long;
 using pii = pair<int, int>;
-const int N = 1 << 18;
-int n, a[N + 10], f[61][N + 10];
-int main() {
+const int N = 100000;
+intl n, a[N + 10], sum;
+int main() { ffopen(rain);
 	cin >> n;
-	for (int i = 1; i <= n; i++) {
-		cin >> a[i];
-		f[a[i]][i] = i;
+	for (int i = 1; i <= n; i++) cin >> a[i], sum += a[i];
+	for (int i = 2; i <= n; i += 2) sum -= a[i] << 1;
+	cout << sum << ' ';
+	for (int i = 2; i <= n; i++) {
+		sum = (a[i - 1] << 1) - sum;
+		cout << sum << " \n"[i == n];
 	}
-	int ans = 0;
-	for (int x = 2; x <= 58; x++) {
-		for (int i = 1; i <= n; i++) {
-			int u = f[x - 1][i];
-			if (u) f[x][i] = f[x - 1][u + 1];
-			if (f[x][i]) chkmax(ans, x);
-		}
-	}
-	cout << ans << '\n';
 	return 0;
 }
