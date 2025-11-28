@@ -12,14 +12,17 @@ using pii = pair<int, int>;
 const intl N = 200, M = N + 2, Mod = 998244353;
 intl n, m, b, p;
 intl h[N + 10], f[N + 10], cc[N + 10];
-inline int idx(int i, int j, int x) { return (i - 1) * x + j; }
+int idx(int i, int j, int x) { return (i - 1) * x + j; }
 struct Mat {
+//	inline static intl pool[M * M * 4 + 10];
+//	inline static int psz = 1;
 	int m;
 	intl a[M * M + 3];
 	Mat(int m) {
 		this->m = m;
 		memset(a, 0, sizeof a);
 	}
+//	~Mat() { psz -= m * m + 3; }
 	auto operator[] (int i) { return a + idx(i, 0, m); }
 	auto operator[] (int i) const { return a + idx(i, 0, m); }
 	Mat operator* (const Mat& b) const {
@@ -30,7 +33,7 @@ struct Mat {
 				if (!aij) continue;
 				for (int k = 1; k <= m; k++) {
 					c[i][k] += aij * b[j][k] % Mod;
-					if (c[i][k] >= Mod) c[i][k] -= Mod;
+					c[i][k] %= Mod;
 				}
 			}
 		} return c;
